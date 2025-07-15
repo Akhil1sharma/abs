@@ -1,0 +1,36 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Allow users to read and write their own tasks
+    match /users/{userId}/tasks/{taskId} {
+      // Read operations
+      allow read: if request.auth != null && 
+                  request.auth.uid == userId;
+      
+      // Create operations
+      allow create: if request.auth != null && 
+                   request.auth.uid == userId && 
+                   request.resource.data.userId == userId;
+      
+      // Update operations
+      allow update: if request.auth != null && 
+                   request.auth.uid == userId;
+      
+      // Delete operations - Simplified to ensure deletion works
+      allow delete: if request.auth != null && 
+                   request.auth.uid == userId;
+    }
+    
+    // User profile rules
+    match /users/{userId} {
+      allow read, write: if request.auth != null && 
+                         request.auth.uid == userId;
+    }
+    
+    // Deny all other access
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
